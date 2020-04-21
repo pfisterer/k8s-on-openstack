@@ -17,5 +17,5 @@
   when: k8s_ingress_status.rc != 0
 
 - name: k8s - Install nginx-ingress via helm
-  shell: 'helm install --namespace {{ k8s_ingress_namespace }} --set ''controller.extraArgs.default-ssl-certificate=cert-manager/ingress-certificate-secret'' --set ''controller.config.proxy-body-size="0"'' --set ''controller.publishService.enabled=true'' --set ''controller.image.tag=0.25.1'' ''{{ k8s_ingress_release_name }}'' ''stable/nginx-ingress'''
+  shell: "helm install --namespace {{ k8s_ingress_namespace }} --set 'controller.extraArgs.default-ssl-certificate=cert-manager/ingress-certificate-secret' --set-string 'controller.config.proxy-body-size=0' --set 'controller.publishService.enabled=true' '{{ k8s_ingress_release_name }}' 'stable/nginx-ingress'"
   when: k8s_ingress_status.rc != 0

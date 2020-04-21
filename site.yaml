@@ -118,6 +118,7 @@
   hosts: master
   tags:
     - bootstrap
+    - k8s-addons
   roles:
     - k8s-addons
 
