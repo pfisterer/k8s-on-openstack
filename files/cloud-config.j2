@@ -33,11 +33,10 @@ subnet-id = {{ hostvars[groups.master[0]]['subnetuuid'] }}
 create-monitor = yes
 {% if hostvars[groups.master[0]]['use_octavia'] %}
 use-octavia = yes
+{% else %}
+use-octavia = no
 {% endif %}
 monitor-delay = 1m
 monitor-timeout = 30s
 monitor-max-retries = 3
 {% endif %}
-
-[Route]
-router-id = {{ hostvars[groups.master[0]]['routeruuid'] }}
