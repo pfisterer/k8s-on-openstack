@@ -86,8 +86,28 @@
     replace: "{{ kubernetes_version }}"
   when: state == "present"
 
+# ----------------------------------------------------------------------------------
+# Copy kubeconf to appropriate locations
+# ----------------------------------------------------------------------------------
+
 - name: Ensure kubectl configuration directory is present
-  become: True
+  file:
+    path: /root/.kube
+    state: directory
+    owner: root
+    mode: 0700
+  when: state == "present"
+
+- name: Copy kubectl configuration for the root user
+  copy:
+    remote_src: True
+    src: /etc/kubernetes/admin.conf
+    dest: /root/.kube/config
+    owner: root
+    mode: 0600
+  when: state == "present"
+
+- name: Ensure kubectl configuration directory is present
   file:
     path: /home/ubuntu/.kube
     state: directory
