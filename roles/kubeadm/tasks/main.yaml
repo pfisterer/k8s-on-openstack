@@ -73,11 +73,15 @@
   copy:
     content: |
       {
-        "exec-opts": [
-          "native.cgroupdriver=systemd"
-        ],
-        "log-driver": "journald",
-        "storage-driver": "overlay2"
+        "exec-opts": ["native.cgroupdriver=systemd"],
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "100m"
+        },
+        "storage-driver": "overlay2",
+        "storage-opts": [
+          "overlay2.override_kernel_check=true"
+        ]
       }
     dest: /etc/docker/daemon.json
     owner: root
@@ -85,18 +89,6 @@
     mode: 0644
   notify:
     - Restart docker
-
-- name: dont write docker logs to /var/log/syslog
-  copy:
-    content: |
-      if $programname == 'dockerd' or $syslogtag == 'dockerd' then /dev/null
-      & stop
-    dest: "/etc/rsyslog.d/30-docker.conf"
-    mode: 0644
-    owner: root
-    group: root
-  notify:
-    - Restart rsyslog
 
 - name: add hosts
   lineinfile:
