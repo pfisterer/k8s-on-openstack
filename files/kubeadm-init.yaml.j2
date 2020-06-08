@@ -6,21 +6,11 @@ nodeRegistration:
   kubeletExtraArgs:
     cgroup-driver: systemd
     cloud-provider: external
-    network-plugin: kubenet
+    network-plugin: cni
     cluster-dns: "{{ cluster_dns_ip }}"
     # non-masquerade-cidr: 0.0.0.0/0 # from https://medium.com/elotl-blog/kubernetes-networking-on-aws-part-i-99012e938a40
 localAPIEndpoint:
   advertiseAddress: "{{ hostvars[groups.master[0]].ansible_ssh_host }}"
-
-# This is ignored by kubeadm (because we are joining using a token, this excludes the use of JoinConfiguration)
-# see kubeadm-nodes/main.yaml for a hack to heal this issue
-#---
-#apiVersion: kubeadm.k8s.io/v1beta2
-#kind: JoinConfiguration
-#nodeRegistration:
-#  kubeletExtraArgs:
-#    cloud-provider: external
-#    network-plugin: kubenet
 
 ---
 apiVersion: kubelet.config.k8s.io/v1beta1
