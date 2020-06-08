@@ -8,6 +8,29 @@
     repo: deb http://apt.kubernetes.io/ kubernetes-xenial main
     state: present
 
+# ---------------------------------------------------------
+# Check installed package versions
+# ---------------------------------------------------------
+
+- name: Gather apt package facts
+  package_facts:
+    manager: apt
+
+- name: Check kubectl installed
+  set_fact:
+    kubelet_installed: false
+  when: "'kubelet' not in ansible_facts.packages"
+
+- name: Get version of kubelet
+  set_fact:
+    kubelet_installed_version: "{{ ansible_facts.packages['kubelet'][0].version }}"
+    kubelet_installed: true
+  when: "'kubelet' in ansible_facts.packages"
+
+- name: Print kubelet version package facts
+  debug:
+    var: kubelet_installed_version
+
 # TODO Make this idempotent (cf. https://github.com/ansible/ansible/issues/18889)
 - name: Unhold docker and kubernetes packages
   command: "apt-mark unhold {{ item }}"
