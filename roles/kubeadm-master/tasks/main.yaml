@@ -47,6 +47,10 @@
     - state == "absent"
     - kubelet_conf.stat.exists == True
 
+# ----------------------------------------------------------------------------------
+# Create join token
+# ----------------------------------------------------------------------------------
+
 - name: Generate a join token
   command: kubeadm token create --print-join-command
   register: joincommand
@@ -56,6 +60,10 @@
   set_fact:
     joincommand: "{{ joincommand.stdout }}"
   when: state == "present"
+
+# ----------------------------------------------------------------------------------
+# In case of upgrade: update versions in config files
+# ----------------------------------------------------------------------------------
 
 - name: In case of upgrade make sure container versions are right for kube-apiserver
   replace:
