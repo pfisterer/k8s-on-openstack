@@ -127,6 +127,16 @@
     mode: 0600
   when: state == "present"
 
+# ----------------------------------------------------------------------------------
+# Install calico CNI
+# cf. https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/#pod-network
+# ----------------------------------------------------------------------------------
+
+- name: Install Calico CNI
+  command: "kubectl apply -f https://docs.projectcalico.org/v3.14/manifests/calico.yaml"
+  when:
+    - state == "present"
+
 - name: Check for existing kubectl bash completion
   stat:
     path: /etc/bash_completion.d/kubectl
