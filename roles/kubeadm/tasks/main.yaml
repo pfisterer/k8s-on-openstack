@@ -112,3 +112,23 @@
     mode: 0600
   notify:
     - Restart kubelet
+
+# ---------------------------------------------------------
+# Ensure all prerequisites are met
+# https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+# ---------------------------------------------------------
+
+# TODO: load module br_netfilter)
+
+- name: Let iptables see bridged traffic
+  copy:
+    dest: /etc/sysctl.d/k8s.conf
+    owner: root
+    group: root
+    mode: 0644
+    content: |
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.bridge.bridge-nf-call-iptables = 1
+
+- name: Let iptables see bridged traffic (load settings from all system configuration files)
+  command: "sysctl --system"
