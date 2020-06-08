@@ -17,7 +17,7 @@ The following mandatory environment variables need to be set before calling `ans
 The following optional environment variables can also be set:
 
   * `NAME`: name of the Kubernetes cluster, used to derive instance names, `kubectl` configuration and security group name
-  * `IMAGE`: name of an existing Ubuntu 16.04 image
+  * `IMAGE`: name of an existing Ubuntu 20.04 image
   * `EXTERNAL_NETWORK`: name of the neutron external network, defaults to 'public'
   * `FLOATING_IP_POOL`: name of the floating IP pool
   * `FLOATING_IP_NETWORK_UUID`: uuid of the floating IP network (required for LBaaSv2)
@@ -72,23 +72,20 @@ $ ansible-playbook site.yaml
 
 ## Open Issues
 
-### Find a better way to configure worker nodes' network plugin
+* Find a idempotent way to hold/unhold packages
 
-Somehow, the network plugin (kubenet) is not correctly set on the worker node. On the master node `/var/lib/kubelet/kubeadm-flags.env` (created by `kubeadm init`) contains: 
+https://github.com/ansible/ansible/issues/18889#issuecomment-265512426
+From @weevilgenius on January 5, 2016 2:35
 
-```bash
-KUBELET_KUBEADM_ARGS="--cgroup-driver=systemd --cloud-provider=external --network-plugin=kubenet --pod-infra-container-image=k8s.gcr.io/pause:3.1 --resolv-conf=/run/systemd/resolve/resolv.conf"
+With versions of apt-mark which support the "showhold" command, you can make holds idempotent with something like this:
+```yaml
+- command: apt-mark showhold
+  register: held_packages
+  changed_when: false
+
+- command: apt-mark hold cassandra
+  when: '"cassandra" not in held_packages.stdout'
 ```
-
-It contains the correct `--network-plugin=kubenet` as configured [here](https://github.com/pfisterer/k8s-on-openstack-wip-k8s-1.15/blob/master/files/kubeadm-init.yaml.j2#L9). After joining the k8s cluster, the worker node's copy of `/var/lib/kubelet/kubeadm-flags.env` (created by `kubeadm join`) looks like this: 
-
-```bash
-KUBELET_KUBEADM_ARGS="--cgroup-driver=systemd --network-plugin=cni --pod-infra-container-image=k8s.gcr.io/pause:3.1 --resolv-conf=/run/systemd/resolve/resolv.conf"
-```
-
-It contains `--network-plugin=cni` despite setting `network-plugin: kubenet` [here](https://github.com/pfisterer/k8s-on-openstack-wip-k8s-1.15/blob/master/files/kubeadm-init.yaml.j2#L21). But the JoinConfiguration is ignored by `kubeadm join` when using a join token. 
-
-Once I edit `/var/lib/kubelet/kubeadm-flags.env` to contain --network-plugin=kubenet, the worker node goes online. I've added a hack in [roles/kubeadm-nodes/tasks/main.yaml](https://github.com/pfisterer/k8s-on-openstack-wip-k8s-1.15/blob/master/roles/kubeadm-nodes/tasks/main.yaml#L12) to set the correct value.
 
 
 ## Prerequisites
