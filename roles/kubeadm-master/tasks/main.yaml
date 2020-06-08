@@ -117,7 +117,6 @@
   when: state == "present"
 
 - name: Copy kubectl configuration for the default user
-  become: True
   copy:
     remote_src: True
     src: /etc/kubernetes/admin.conf
@@ -137,6 +136,9 @@
   when:
     - state == "present"
 
+# ----------------------------------------------------------------------------------
+# Convenience tools (bash completion, kubectx, kubens)
+# ----------------------------------------------------------------------------------
 - name: Check for existing kubectl bash completion
   stat:
     path: /etc/bash_completion.d/kubectl
