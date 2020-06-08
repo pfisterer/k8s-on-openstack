@@ -15,13 +15,3 @@
   command: "kubeadm reset --force"
   when: state == "absent"
   ignore_errors: True
-
-# For some reason "kubeadm join" does not write the correct value here
-- name: HACK - replace --network-plugin=cni with --network-plugin=kubenet
-  replace:
-    path: /var/lib/kubelet/kubeadm-flags.env
-    regexp: network-plugin=cni
-    replace: "network-plugin=kubenet"
-  notify:
-    - Restart kubelet
-  when: state == "present"
