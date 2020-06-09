@@ -2,6 +2,10 @@
 
 An opinionated way to deploy a Kubernetes cluster on top of an OpenStack cloud. It uses [kubeadm](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/) and [ansible](https://www.ansible.com/) to deploy a k8s cluster with [Calico CNI](https://github.com/projectcalico/cni-plugin) as networking substrate.
 
+It has been verified to work with
+- Ubuntu 18.04 LTS (update [group_vars/all.yaml](group_vars/all.yaml)) 
+- Ubuntu 20.04 LTS (no changes required)
+
 ## Getting started
 
 ### Environment variables
