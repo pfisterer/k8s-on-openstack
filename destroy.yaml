@@ -97,9 +97,6 @@
     - openstack-security-groups
 
   tasks:
-    - name: Clear static routes
-      shell: openstack router set --no-route "{{ router_name }}"
-
     - name: Delete router
       os_router:
         state: absent
