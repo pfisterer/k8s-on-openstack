@@ -1,3 +1,6 @@
+--- # ---------------------------------------------------------
+# ---------------------------------------------------------
+# Add package repos
 - name: Install k8s APT repo GPG key
   apt_key:
     url: "https://packages.cloud.google.com/apt/doc/apt-key.gpg"
@@ -12,62 +15,79 @@
 # Check installed package versions
 # ---------------------------------------------------------
 
+- name: Set packages and their desired versions to be installed
+  set_fact:
+    desired_package_versions:
+      docker.io: "{{ docker_version }}"
+      kubelet: "{{ kubernetes_ubuntu_version }}"
+      kubeadm: "{{ kubernetes_ubuntu_version }}"
+      kubectl: "{{ kubernetes_ubuntu_version }}"
+      kubernetes-cni: "{{ kubernetes_cni_ubuntu_version }}"
+
 - name: Gather apt package facts
   package_facts:
     manager: apt
 
-- name: Check kubectl installed
+- name: Populate versions (for installed packages)
   set_fact:
-    kubelet_installed: false
-  when: "'kubelet' not in ansible_facts.packages"
+    installed_versions: "{{ installed_versions|default({}) | combine( {item.key: ansible_facts.packages[item.key][0].version} ) }}"
+  when: "item.key in ansible_facts.packages"
+  loop: "{{ lookup('dict', desired_package_versions) }}"
 
-- name: Get version of kubelet
+- name: Populate versions (for missing packages)
   set_fact:
-    kubelet_installed_version: "{{ ansible_facts.packages['kubelet'][0].version }}"
-    kubelet_installed: true
-  when: "'kubelet' in ansible_facts.packages"
+    installed_versions: "{{ installed_versions|default({}) | combine( {item.key: '__not__installed__'} ) }}"
+  when: "item.key not in ansible_facts.packages"
+  loop: "{{ lookup('dict', desired_package_versions) }}"
 
-- name: Print kubelet version package facts
+- name: Get packages on hold
+  command: apt-mark showhold
+  register: packages_on_hold
+  changed_when: false # This doesn't influence idempotency
+
+# Unhold and install correct version
+- name: Unholding packages that require change (install or change version)
+  command: "apt-mark unhold {{ item.key }}"
+  # versions do not match, item.key = package name, item.value = current version, desired_package_versions[item.key] = desired version
+  when: "item.value != desired_package_versions[item.key]"
+  loop: "{{ lookup('dict', installed_versions) }}"
+
+- name: Compile a list of "name=version" tuples to be installed
+  set_fact:
+    apt_install_list: "{{ (apt_install_list | default([])) + [item.key + '=' +  desired_package_versions[item.key]] }}"
+  when: "item.value != desired_package_versions[item.key]"
+  loop: "{{ lookup('dict', installed_versions) }}"
+
+- name: Packages to be installed
   debug:
-    var: kubelet_installed_version
+    var: apt_install_list
+  when: apt_install_list is defined
 
-# TODO Make this idempotent (cf. https://github.com/ansible/ansible/issues/18889)
-- name: Unhold docker and kubernetes packages
-  command: "apt-mark unhold {{ item }}"
-  with_items:
-    - docker.io
-    - kubelet
-    - kubeadm
-    - kubectl
-    - kubernetes-cni
-
-- name: Install docker and kubernetes packages
+- name: Installing packages that require change (install or change version)
   apt:
-    name:
-      [
-        "docker.io={{ docker_version }}",
-        "kubelet={{ kubernetes_ubuntu_version }}",
-        "kubeadm={{ kubernetes_ubuntu_version }}",
-        "kubectl={{ kubernetes_ubuntu_version }}",
-        "kubernetes-cni={{ kubernetes_cni_ubuntu_version }}",
-      ]
+    name: "{{ apt_install_list }}"
     state: present
+    only_upgrade: no
+    force: true
     update_cache: yes
+  # versions do not match, item.key = package name, item.value = current version, desired_package_versions[item.key] = desired version
+  when: apt_install_list is defined
+
+- name: Holding packages that required change (install or change version)
+  command: "apt-mark hold {{ item.key }}"
+  # versions didn't match or package hasn't been on hold yet
+  when: "item.value != desired_package_versions[item.key] or item.key not in packages_on_hold.stdout_lines"
+  loop: "{{ lookup('dict', installed_versions) }}"
+
+# ---------------------------------------------------------
+# Configure docker.io
+# ---------------------------------------------------------
 
 - name: Enable docker service
   systemd:
     name: docker
     enabled: yes
     daemon_reload: yes
-
-- name: Hold docker and kubernetes packages
-  command: "apt-mark hold {{ item }}"
-  with_items:
-    - docker.io
-    - kubelet
-    - kubeadm
-    - kubectl
-    - kubernetes-cni
 
 - name: configure docker to use journald
   copy:
@@ -90,6 +110,10 @@
   notify:
     - Restart docker
 
+# ---------------------------------------------------------
+# Add hostnames to /etc/hosts
+# ---------------------------------------------------------
+
 - name: add hosts
   lineinfile:
     dest: "/etc/hosts"
@@ -98,6 +122,10 @@
     state: present
   when: hostvars[item].ansible_hostname is defined
   with_items: "{{groups['all'] | default([])}}"
+
+# ---------------------------------------------------------
+# OpenStack cloud configuration
+# ---------------------------------------------------------
 
 - name: Create OpenStack cloud configuration
   template:
@@ -118,7 +146,7 @@
 # https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
 # ---------------------------------------------------------
 
-# TODO: load module br_netfilter)
+# TODO: load module br_netfilter
 
 - name: Let iptables see bridged traffic
   copy:
