@@ -48,11 +48,14 @@ availability_zone: "{{ lookup('env','AVAILABILITY_ZONE') | default('nova', true)
 
 #Change at your own risk
 kubernetes_version: v1.16.10
-kubernetes_ubuntu_version: 1.16.10-00
-kubernetes_cni_ubuntu_version: 0.7.5-00
-docker_version: 18.09.7-0ubuntu1~18.04.4
+kubernetes_ubuntu_version: 1.16.10-00 # Run 'apt-cache madison kubelet' to get available versions
+kubernetes_cni_ubuntu_version: 0.7.5-00 # Run 'apt-cache madison kubernetes-cni' to get available versions
+docker_version: 18.09.7-0ubuntu1~18.04.4 # Run 'apt-cache madison docker.io' to get available versions
+k8scloudprovider_image_version: 1.13.1 # cf. https://github.com/kubernetes/cloud-provider-openstack/releases
+#-------------------------------------------------
 #Currently not working:
 #kubernetes_version: v1.18.0
-#kubernetes_ubuntu_version: 1.18.3-00 # Run apt-cache madison kubelet to get available versions
-#kubernetes_cni_ubuntu_version: 0.7.5-00 # Run apt-cache madison kubernetes-cni to get available versions
-#docker_version: 19.03.8-0ubuntu1
+#kubernetes_ubuntu_version: 1.18.3-00 # Run 'apt-cache madison kubelet' to get available versions
+#kubernetes_cni_ubuntu_version: 0.7.5-00 # Run 'apt-cache madison kubernetes-cni' to get available versions
+#docker_version: 19.03.8-0ubuntu1 # Run 'apt-cache madison docker.io' to get available versions
+#k8scloudprovider_image_version: v1.18.0 # cf. https://github.com/kubernetes/cloud-provider-openstack/releases

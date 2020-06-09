@@ -20,7 +20,7 @@ spec:
       serviceAccount: admin-user
       serviceAccountName: admin-user
       containers:
-        - image: k8scloudprovider/k8s-keystone-auth:v0.2.0
+        - image: k8scloudprovider/k8s-keystone-auth:{{ k8scloudprovider_image_version }}
           imagePullPolicy: Always
           name: k8s-keystone-auth
           args:
