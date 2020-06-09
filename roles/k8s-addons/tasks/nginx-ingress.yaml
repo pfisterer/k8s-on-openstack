@@ -6,6 +6,7 @@
 - name: Check if NGINX ingress is already installed
   shell: helm status -n 'kube-system' '{{ k8s_ingress_release_name }}'
   ignore_errors: True
+  no_log: true
   register: k8s_ingress_status
 
 - name: Add stable repo to helm
