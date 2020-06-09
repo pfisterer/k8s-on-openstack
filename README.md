@@ -92,5 +92,4 @@ The following environment variables needs to be defined:
 # References
 
 * https://kubernetes.io/docs/getting-started-guides/kubeadm/
-* https://www.weave.works/docs/net/latest/kube-addon/
 * https://github.com/kubernetes/dashboard#kubernetes-dashboard
