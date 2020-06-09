@@ -47,7 +47,12 @@ helm_install: "{{ lookup('env', 'HELM_INSTALL').split(';') | default([], true) }
 availability_zone: "{{ lookup('env','AVAILABILITY_ZONE') | default('nova', true) }}"
 
 #Change at your own risk
-kubernetes_version: v1.18.0
-kubernetes_ubuntu_version: 1.18.3-00 # Run apt-cache madison kubelet to get available versions
-kubernetes_cni_ubuntu_version: 0.7.5-00 # Run apt-cache madison kubernetes-cni to get available versions
-docker_version: 19.03.8-0ubuntu1
+kubernetes_version: v1.16.10
+kubernetes_ubuntu_version: 1.16.10-00
+kubernetes_cni_ubuntu_version: 0.7.5-00
+docker_version: 18.09.7-0ubuntu1~18.04.4
+#Currently not working:
+#kubernetes_version: v1.18.0
+#kubernetes_ubuntu_version: 1.18.3-00 # Run apt-cache madison kubelet to get available versions
+#kubernetes_cni_ubuntu_version: 0.7.5-00 # Run apt-cache madison kubernetes-cni to get available versions
+#docker_version: 19.03.8-0ubuntu1
